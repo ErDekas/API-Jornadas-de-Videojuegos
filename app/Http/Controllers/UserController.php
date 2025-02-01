@@ -29,7 +29,16 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $users = User::find($id);
+
+        if(!empty($users)){
+            return response()->json($users);
+        }
+        else{
+            return response()->json([
+                "message" => "El usuario no se ha encontrado"
+            ]);
+        }
     }
 
     /**
@@ -37,7 +46,19 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $users = User::find($id);
+
+        $users->name = $request->name;
+        $users->email = $request->email;
+        $users->password = $request->password;
+        $users->registration_type = $request->registration_type;
+        $users->is_admin = $request->is_admin;
+        $users->email_verified_at = $request->email_verified_at;
+        $users->student_verified = $request->student_verified;
+
+        return response()->json([
+            "message" => "El usuario ha sido actualizado correctamente"
+        ]);
     }
 
     /**
@@ -45,6 +66,11 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $users = User::find($id);
+        $users->delete();
+
+        return response()->json([
+            "message" => "El usuario ha sido borrado correctamente"
+        ]);
     }
 }
