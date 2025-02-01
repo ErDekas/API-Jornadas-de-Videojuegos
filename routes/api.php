@@ -1,6 +1,5 @@
 <?php
 use Illuminate\Support\Facades\Route;
-
 use Faker\Provider\ar_EG\Payment;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
