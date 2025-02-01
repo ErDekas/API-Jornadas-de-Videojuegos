@@ -1,7 +1,14 @@
 <?php
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\UserController;
+
 use Faker\Provider\ar_EG\Payment;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\EventController;
+use App\Http\Controllers\SpeakerController;
+use App\Http\Controllers\RegistrationController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\AdminController;
 
 Route::prefix('api/v1')->group(function () {
 
@@ -34,7 +41,7 @@ Route::prefix('api/v1')->group(function () {
         Route::get('/payments/verify', [PaymentController::class, 'verify']);
 
         // Rutas solo para adminsitradores
-        Router::middleware('admin')->group(function () {
+        Route::middleware('admin')->group(function () {
             Route::get('/admin/attendees', [AdminController::class, 'listAttendee']);
             Route::get('/admin/payments', [AdminController::class, 'listPayments']);
             Route::get('/admin/statistics', [AdminController::class, 'getStatistics']);
