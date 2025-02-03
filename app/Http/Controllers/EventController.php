@@ -3,16 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Repositories\Event\EventRepositoryInterface;
+
 use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
+    protected $eventRepository;
+
+    public function __construct(EventRepositoryInterface $eventRepository)
+    {
+        $this->eventRepository = $eventRepository;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $events = Event::all();
+        $events = $this->eventRepository->getAll();
         return response()->json([
             'data_count' => $events->count(),
             'events' => $events
@@ -24,7 +33,7 @@ class EventController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validatedData = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'type' => 'required|string',
@@ -36,20 +45,8 @@ class EventController extends Controller
             'location' => 'required|string|max:255',
         ]);
 
-        $events = new Event;
-        
-        $events->title = $request->title;
-        $events->description = $request->description;
-        $events->type = $request->type;
-        $events->date = $request->date;
-        $events->start_time = $request->start_time;
-        $events->end_time = $request->end_time;
-        $events->max_attendees = $request->max_attendees;
-        $events->current_attendees = $request->current_attendees;
-        $events->location = $request->location;
-
-        $events->save();
-
+        $events = $this->eventRepository->create($validatedData);
+          
         return response()->json([
             "message" => "El evento ha sido agregado correctamente",
             'data_count' => 1 
@@ -61,12 +58,11 @@ class EventController extends Controller
      */
     public function show($id)
     {
-        $events = Event::find($id);
+        $events = $this->eventRepository->findById($id);
 
         if(!empty($events)){
             return response()->json([
-                'event' => $events,
-                'data_count' => 1
+                'event' => $events
             ], 200);
         }
         else{
@@ -81,7 +77,19 @@ class EventController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $events = Event::find($id);
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'type' => 'required|string',
+            'date' => 'required|date',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date',
+            'max_attendees' => 'required|integer',
+            'current_attendees' => 'required|integer',
+            'location' => 'required|string|max:255',
+        ]);
+
+        $events = $this->eventRepository->update($id, $validatedData);
 
         if (!$events) {
             return response()->json([
@@ -89,21 +97,8 @@ class EventController extends Controller
             ], 404); 
         }
 
-        $events->title = $request->title;
-        $events->description = $request->description;
-        $events->type = $request->type;
-        $events->date = $request->date;
-        $events->start_time = $request->start_time;
-        $events->end_time = $request->end_time;
-        $events->max_attendees = $request->max_attendees;
-        $events->current_attendees = $request->current_attendees;
-        $events->location = $request->location;
-
-        $events->save();
-
         return response()->json([
-            "message" => "El evento ha sido actualizado correctamente",
-            'data_count' => 1
+            "message" => "El evento ha sido actualizado correctamente"
         ], 200);
     }
 
@@ -112,13 +107,13 @@ class EventController extends Controller
      */
     public function destroy($id)
     {
-        $events = Event::find($id);
+        $events = $this->eventRepository->delete($id);
+
         if (!$events) {
             return response()->json([
                 'message' => 'El evento no se ha encontrado'
             ], 404);
         }
-        $events->delete();
 
         return response()->json([
             "message" => "El evento ha sido borrado correctamente",
@@ -130,7 +125,7 @@ class EventController extends Controller
      * Method to check the availability of the event
      */
     public function checkAvailability($id){
-        $event = Event::find($id);
+        $event = $this->eventRepository->findById($id);
 
         if (!$event) {
             return response()->json([
@@ -144,8 +139,7 @@ class EventController extends Controller
             'event_id' => $event->id,
             'title' => $event->title,
             'available_slots' => $availability > 0 ? $availability : 0,
-            'status' => $availability > 0 ? 'Quedan plazas' : 'No hay plazas',
-            'data_count' => 1
+            'status' => $availability > 0 ? 'Quedan plazas' : 'No hay plazas'
         ], 200);
     }
 
@@ -153,7 +147,7 @@ class EventController extends Controller
      * Method to see the attendee of the event
      */
     public function registerAttendee($id){
-        $event = Event::find($id);
+        $event = $this->eventRepository->findById($id);
 
         if (!$event) {
             return response()->json([
@@ -174,7 +168,7 @@ class EventController extends Controller
             'data_count' => $attendees->count(),
             'event_id' => $event->id,
             'title' => $event->title,
-            'attendees' => $attendees
+            'attendees' => $attendees->isEmpty() ? 'No hay asistentes registrados en este evento' : $attendees
         ], 200);
     }
 }

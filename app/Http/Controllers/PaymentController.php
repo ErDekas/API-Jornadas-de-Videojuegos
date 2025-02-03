@@ -2,20 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Repositories\Payment\PaymentRepositoryInterface;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
+
+    protected $paymentRepository;
+
+    public function __construct(PaymentRepositoryInterface $paymentRepository)
+    {
+        $this->paymentRepository = $paymentRepository;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $payments = Payment::all();
+        $payments = $this->paymentRepository->getAll();
         return response()->json([
-            'payments' => $payments,
-            'data_count' => $payments->count()
+            'data_count' => $payments->count(),
+            'payments' => $payments
         ], 200);
     }
 
@@ -33,21 +42,11 @@ class PaymentController extends Controller
             'paypal_order_id' => 'nullable|string',
         ]);
 
-        $payments = new Payment;
-
-        $payments->registration_id = $request->registration_id;
-        $payments->amount = $request->amount;
-        $payments->payment_method = $request->payment_method;
-        $payments->transaction_id = $request->transaction_id;
-        $payments->status = $request->status;
-        $payments->paypal_order_id = $request->paypal_order_id;
-
-        $payments->save();
-
+        $payment = $this->paymentRepository->create($request->all());
 
         return response()->json([
             "message" => "El pago ha sido agregado correctamente",
-            'data_count' => 1 
+            "payment" => $payment
         ], 201);
     }
 
@@ -56,12 +55,11 @@ class PaymentController extends Controller
      */
     public function show($id)
     {
-        $payments = Payment::find($id);
+        $payments = $this->paymentRepository->findById($id);
 
         if(!empty($payments)){
             return response()->json([
-                'payment' => $payments,
-                'data_count' => 1
+                'payment' => $payments
             ], 200);
         }
         else{
@@ -76,7 +74,7 @@ class PaymentController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $payments = Payment::find($id);
+        $payments = $this->paymentRepository->update($id, $request->all());
 
         if (!$payments) {
             return response()->json([
@@ -84,18 +82,8 @@ class PaymentController extends Controller
             ], 404); 
         }
 
-        $payments->registration_id = $request->registration_id;
-        $payments->amount = $request->amount;
-        $payments->payment_method = $request->payment_method;
-        $payments->transaction_id = $request->transaction_id;
-        $payments->status = $request->status;
-        $payments->paypal_order_id = $request->paypal_order_id;
-
-        $payments->save();
-
         return response()->json([
-            "message" => "El pago ha sido actualizado correctamente",
-            'data_count' => 1 
+            "message" => "El pago ha sido actualizado correctamente"
         ], 200);
     }
 
@@ -104,7 +92,7 @@ class PaymentController extends Controller
      */
     public function destroy($id)
     {
-        $payments = Payment::find($id);
+        $payments = $this->paymentRepository->delete($id);
 
         if (!$payments) {
             return response()->json([
@@ -112,11 +100,8 @@ class PaymentController extends Controller
             ], 404); 
         }
 
-        $payments->delete();
-
         return response()->json([
-            "message" => "El pago ha sido borrado correctamente",
-            'data_count' => 0 
+            "message" => "El pago ha sido borrado correctamente"
         ], 200);
     }
 
@@ -134,7 +119,7 @@ class PaymentController extends Controller
             'paypal_order_id' => 'nullable|string',
         ]);
 
-        $payment = Payment::create([
+        $payment = $this->paymentRepository->process([
             'registration_id' => $validate['registration_id'],
             'amount' => $validate['amount'],
             'payment_method' => $validate['payment_method'],
@@ -161,9 +146,7 @@ class PaymentController extends Controller
             'paypal_order_id' => 'nullable|string|exists:payments,paypal_order_id',
         ]);
 
-        $payment = Payment::where('transaction_id', $request->transaction_id)
-                      ->orWhere('paypal_order_id', $request->paypal_order_id)
-                      ->first();
+        $payment = $this->paymentRepository->findByTransactionOrPaypalOrderId($request->transaction_id, $request->paypal_order_id);
 
         if (!$payment) {
             return response()->json([
@@ -173,8 +156,7 @@ class PaymentController extends Controller
 
         return response()->json([
             'message' => 'Pago encontrado',
-            'payment' => $payment,
-            'data_count' => 1 
+            'payment' => $payment
         ], 200);
 
     }

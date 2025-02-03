@@ -3,19 +3,28 @@
 namespace App\Http\Controllers;
 
 use App\Models\Speaker;
+use App\Repositories\Speaker\SpeakerRepositoryInterface;
 use Illuminate\Http\Request;
 
 class SpeakerController extends Controller
 {
+
+    protected $speakerRepository;
+
+    public function __construct(SpeakerRepositoryInterface $speakerRepository)
+    {
+        $this->speakerRepository = $speakerRepository;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $speakers = Speaker::all();
+        $speakers = $this->speakerRepository->getAll();
         return response()->json([
-            'speakers' => $speakers,
-            'data_count' => $speakers->count() 
+            'data_count' => $speakers->count(),
+            'speakers' => $speakers
         ], 200);
     }
 
@@ -32,14 +41,7 @@ class SpeakerController extends Controller
             'exprestise_areas' => 'nullable|string', 
         ]);
 
-        $speakers = new Speaker;
-
-        $speakers->name = $request->name;
-        $speakers->photo_url = $request->photo_url;
-        $speakers->social_links = $request->social_links;
-        $speakers->exprestise_areas = $request->exprestise_areas;
-
-        $speakers->save();
+        $this->speakerRepository->create($request->all());
 
         return response()->json([
             "message" => "El ponente ha sido agregado correctamente",
@@ -52,12 +54,11 @@ class SpeakerController extends Controller
      */
     public function show($id)
     {
-        $speakers = Speaker::find($id);
+        $speakers = $this->speakerRepository->findById($id);
 
         if(!empty($speakers)){
             return response()->json([
-                'speaker' => $speakers,
-                'data_count' => 1
+                'speaker' => $speakers
             ], 200);
         }
         else{
@@ -72,7 +73,15 @@ class SpeakerController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $speakers = Speaker::find($id);
+        $request->validate([
+            'name' => 'required|string|max:255', 
+            'photo_url' => 'nullable|url', 
+            'social_links' => 'nullable|array',
+            'social_links.*' => 'nullable|url',
+            'exprestise_areas' => 'nullable|string',
+        ]);
+
+        $speakers = $this->speakerRepository->update($id, $request->all());
 
         if (!$speakers) {
             return response()->json([
@@ -80,16 +89,8 @@ class SpeakerController extends Controller
             ], 404); 
         }
 
-        $speakers->name = $request->name;
-        $speakers->photo_url = $request->photo_url;
-        $speakers->social_links = $request->social_links;
-        $speakers->exprestise_areas = $request->exprestise_areas;
-
-        $speakers->save();
-
         return response()->json([
-            "message" => "El ponente ha sido actualizado correctamente",
-            'data_count' => 1
+            "message" => "El ponente ha sido actualizado correctamente"
         ], 200);
     }
 
@@ -98,7 +99,7 @@ class SpeakerController extends Controller
      */
     public function destroy($id)
     {
-        $speakers = Speaker::find($id);
+        $speakers = $this->speakerRepository->delete($id);
 
         if (!$speakers) {
             return response()->json([
@@ -106,11 +107,8 @@ class SpeakerController extends Controller
             ], 404); 
         }
 
-        $speakers->delete();
-
         return response()->json([
-            "message" => "El ponente ha sido borrado correctamente",
-            'data_count' => 0 
+            "message" => "El ponente ha sido borrado correctamente"
         ], 200);
     }
 }

@@ -3,16 +3,24 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Repositories\User\UserRepositoryInterface;
 use App\Models\User;
 
 class UserController extends Controller
 {
+    protected $userRepository;
+
+    public function __construct(UserRepositoryInterface $userRepository)
+    {
+        $this->userRepository = $userRepository;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return response()->json(User::all());
+        return response()->json($this->userRepository->getAll());
     }
 
     /**
@@ -20,7 +28,7 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $user = User::create($request->all());
+        $user = $this->userRepository->create($request->all());
         return response()->json($user, 201);
     }
 
@@ -29,12 +37,11 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        $users = User::find($id);
+        $users = $this->userRepository->findById($id);
 
         if(!empty($users)){
             return response()->json([
-                'users' => $users,
-                'data_count' => 1
+                'users' => $users
             ], 200);
         }
         else{
@@ -49,7 +56,7 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $users = User::find($id);
+        $users = $this->userRepository->findById($id);
 
         if (!$users) {
             return response()->json([
@@ -57,19 +64,10 @@ class UserController extends Controller
             ], 404); 
         }
 
-        $users->name = $request->name;
-        $users->email = $request->email;
-        $users->password = $request->password;
-        $users->registration_type = $request->registration_type;
-        $users->is_admin = $request->is_admin;
-        $users->email_verified_at = $request->email_verified_at;
-        $users->student_verified = $request->student_verified;
-
-        $users->save();
+        $updateUser = $this->userRepository->update($id, $request->all());
 
         return response()->json([
-            "message" => "El usuario ha sido actualizado correctamente",
-            'data_count' => 1
+            "message" => "El usuario ha sido actualizado correctamente"
         ], 200);
     }
 
@@ -78,7 +76,7 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
-        $users = User::find($id);
+        $users = $this->userRepository->delete($id);
 
         if (!$users) {
             return response()->json([
@@ -86,16 +84,13 @@ class UserController extends Controller
             ], 404); 
         }
 
-        $users->delete();
-
         return response()->json([
-            "message" => "El usuario ha sido borrado correctamente",
-            'data_count' => 0 
+            "message" => "El usuario ha sido borrado correctamente"
         ], 200);
     }
 
     public function setRegistrationType(Request $request, $id){
-        $users = User::find($id);
+        $users = $this->userRepository->findById($id);
 
         if (!$users) {
             return response()->json([
@@ -103,9 +98,7 @@ class UserController extends Controller
             ], 404); 
         }
         
-        $users->registration_type = $request->registration_type;
-
-        $users->save();
+        $this->userRepository->update($id, ['registration_type' => $request->registration_type]);
 
         return response()->json([
             "message" => "El usuario ha sido actualizado correctamente"
