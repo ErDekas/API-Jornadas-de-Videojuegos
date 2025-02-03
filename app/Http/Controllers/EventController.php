@@ -13,7 +13,10 @@ class EventController extends Controller
     public function index()
     {
         $events = Event::all();
-        return response()->json($events);
+        return response()->json([
+            'events' => $events,
+            'data_count' => $events->count()
+        ], 200);
     }
 
     /**
@@ -34,8 +37,9 @@ class EventController extends Controller
         $events->location = $request->location;
 
         return response()->json([
-            "message" => "El evento ha sido agregado correctamente"
-        ]);
+            "message" => "El evento ha sido agregado correctamente",
+            'data_count' => 1 
+        ], 201);
     }
 
     /**
@@ -46,12 +50,15 @@ class EventController extends Controller
         $events = Event::find($id);
 
         if(!empty($events)){
-            return response()->json($events);
+            return response()->json([
+                'event' => $events,
+                'data_count' => 1
+            ], 200);
         }
         else{
             return response()->json([
                 "message" => "El evento no se ha encontrado"
-            ]);
+            ], 404);
         }
     }
 
@@ -61,6 +68,12 @@ class EventController extends Controller
     public function update(Request $request, $id)
     {
         $events = Event::find($id);
+
+        if (!$events) {
+            return response()->json([
+                'message' => 'El evento no se ha encontrado'
+            ], 404); 
+        }
 
         $events->title = $request->title;
         $events->description = $request->description;
@@ -73,8 +86,9 @@ class EventController extends Controller
         $events->location = $request->location;
 
         return response()->json([
-            "message" => "El evento ha sido actualizado correctamente"
-        ]);
+            "message" => "El evento ha sido actualizado correctamente",
+            'data_count' => 1
+        ], 200);
     }
 
     /**
@@ -83,10 +97,66 @@ class EventController extends Controller
     public function destroy($id)
     {
         $events = Event::find($id);
+        return response()->json([
+            'message' => 'El evento no se ha encontrado'
+        ], 404);
         $events->delete();
 
         return response()->json([
-            "message" => "El evento ha sido borrado correctamente"
-        ]);
+            "message" => "El evento ha sido borrado correctamente",
+            'data_count' => 0 
+        ], 200);
+    }
+
+    /**
+     * Method to check the availability of the event
+     */
+    public function checkAvailability($id){
+        $event = Event::find($id);
+
+        if (!$event) {
+            return response()->json([
+                'message' => 'El evento no se ha encontrado'
+            ], 404);
+        }
+
+        $availability = $event->max_attendees - $event->current_attendees;
+
+        return response()->json([
+            'event_id' => $event->id,
+            'title' => $event->title,
+            'available_slots' => $availability > 0 ? $availability : 0,
+            'status' => $availability > 0 ? 'Quedan plazas' : 'No hay plazas',
+            'data_count' => 1
+        ], 200);
+    }
+
+    /**
+     * Method to see the attendee of the event
+     */
+    public function registerAttendee($id){
+        $event = Event::find($id);
+
+        if (!$event) {
+            return response()->json([
+                'message' => 'El evento no se ha encontrado'
+            ], 404);
+        }
+
+        $attendees = $event->attendees()->select('users.id', 'users.name', 'users.email')->get();
+
+        if ($attendees->isEmpty()) {
+            return response()->json([
+                'message' => 'Este evento no tiene asistentes registrados',
+                'data_count' => 0 
+            ], 200);
+        }
+
+        return response()->json([
+            'event_id' => $event->id,
+            'title' => $event->title,
+            'attendees' => $attendees,
+            'data_count' => $attendees->count()
+        ], 200);
     }
 }

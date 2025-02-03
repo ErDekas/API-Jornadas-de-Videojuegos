@@ -41,7 +41,7 @@ class AuthController extends Controller
             'student_verified' => $user->student_verified,
             'token' => $token,
             'user' => $user
-        ]);
+        ],201);
     }
 
      /**
@@ -70,7 +70,7 @@ class AuthController extends Controller
             'message' => 'El inicio de sesión ha salido correctamente',
             'token' => $token,
             'user' => $user
-        ]);
+        ],200);
     }
 
      /**
@@ -92,7 +92,10 @@ class AuthController extends Controller
         $user->email_verified_at = now();
         $user->save();
     
-        return response()->json(['message' => 'El correo ha sido verificado correctamente']);
+        return response()->json([
+            'message' => 'El correo ha sido verificado correctamente',
+            'user' => $user
+        ], 200);    
     }
 
     

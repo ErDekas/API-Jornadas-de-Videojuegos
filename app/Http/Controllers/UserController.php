@@ -32,12 +32,15 @@ class UserController extends Controller
         $users = User::find($id);
 
         if(!empty($users)){
-            return response()->json($users);
+            return response()->json([
+                'users' => $users,
+                'data_count' => 1
+            ], 200);
         }
         else{
             return response()->json([
                 "message" => "El usuario no se ha encontrado"
-            ]);
+            ],404);
         }
     }
 
@@ -48,6 +51,12 @@ class UserController extends Controller
     {
         $users = User::find($id);
 
+        if (!$users) {
+            return response()->json([
+                'message' => 'El usuario no se ha encontrado'
+            ], 404); 
+        }
+
         $users->name = $request->name;
         $users->email = $request->email;
         $users->password = $request->password;
@@ -57,8 +66,9 @@ class UserController extends Controller
         $users->student_verified = $request->student_verified;
 
         return response()->json([
-            "message" => "El usuario ha sido actualizado correctamente"
-        ]);
+            "message" => "El usuario ha sido actualizado correctamente",
+            'data_count' => 1
+        ], 200);
     }
 
     /**
@@ -67,10 +77,34 @@ class UserController extends Controller
     public function destroy(string $id)
     {
         $users = User::find($id);
+
+        if (!$users) {
+            return response()->json([
+                'message' => 'El usuario no se ha encontrado'
+            ], 404); 
+        }
+
         $users->delete();
 
         return response()->json([
-            "message" => "El usuario ha sido borrado correctamente"
-        ]);
+            "message" => "El usuario ha sido borrado correctamente",
+            'data_count' => 0 
+        ], 200);
+    }
+
+    public function setRegistrationType(Request $request, $id){
+        $users = User::find($id);
+
+        if (!$users) {
+            return response()->json([
+                'message' => 'El usuario no se ha encontrado'
+            ], 404); 
+        }
+        
+        $users->registration_type = $request->registration_type;
+
+        return response()->json([
+            "message" => "El usuario ha sido actualizado correctamente"
+        ], 200);
     }
 }

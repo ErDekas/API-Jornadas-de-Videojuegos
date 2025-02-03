@@ -13,7 +13,10 @@ class RegistrationController extends Controller
     public function index()
     {
         $registrations = Registration::all();
-        return response()->json($registrations);
+        return response()->json([
+            'registrations' => $registrations,
+            'data_count' => $registrations->count()
+        ], 200);
     }
 
     /**
@@ -30,8 +33,10 @@ class RegistrationController extends Controller
         $registrations->ticket_code = $request->ticket_code;
 
         return response()->json([
-            "message" => "La inscripción ha sido agregada correctamente"
-        ]);
+            "message" => "La inscripción ha sido agregada correctamente",
+            'data_count' => 1 
+        ], 201);
+        
     }
 
     /**
@@ -42,7 +47,10 @@ class RegistrationController extends Controller
         $registrations = Registration::find($id);
 
         if(!empty($registrations)){
-            return response()->json($registrations);
+            return response()->json([
+                'registrations' => $registrations,
+                'data_count' => 1
+            ], 200);
         }
         else{
             return response()->json([
@@ -58,6 +66,12 @@ class RegistrationController extends Controller
     {
         $registrations = Registration::find($id);
 
+        if (!$registrations) {
+            return response()->json([
+                'registrations' => 'La inscripcion no se ha encontrado'
+            ], 404); 
+        }
+
         $registrations->user_id = $request->regisuser_idtration_id;
         $registrations->registration_type = $request->registration_type;
         $registrations->total_amount = $request->total_amount;
@@ -65,8 +79,9 @@ class RegistrationController extends Controller
         $registrations->ticket_code = $request->ticket_code;
 
         return response()->json([
-            "message" => "La inscripción ha sido actualizada correctamente"
-        ]);
+            "message" => "La inscripción ha sido actualizada correctamente",
+            'data_count' => 1 
+        ], 200);
     }
 
     /**
@@ -75,10 +90,41 @@ class RegistrationController extends Controller
     public function destroy($id)
     {
         $registrations = Registration::find($id);
+
+        if (!$registrations) {
+            return response()->json([
+                'message' => 'La inscripcion no se ha encontrado'
+            ], 404); 
+        }
+
         $registrations->delete();
 
         return response()->json([
-            "message" => "La inscripción ha sido borrada correctamente"
-        ]);
+            "message" => "La inscripción ha sido borrada correctamente",
+            'data_count' => 0 
+        ], 200);
+    }
+
+    /**
+     * Method to get all the registrations with a specific ticket
+     */
+    public function getTicket($id){
+        $ticketCode = Registration::where('ticket_code', $id)->first();
+  
+        if (!$ticketCode) {
+            return response()->json([
+                'message' => 'No hay inscripciones con este ticket'
+            ], 404);
+        }
+    
+        return response()->json([
+            'ticket_code' => $ticketCode->ticket_code,
+            'user_id' => $ticketCode->user_id,
+            'registration_type' => $ticketCode->registration_type,
+            'total_amount' => $ticketCode->total_amount,
+            'payment_status' => $ticketCode->payment_status,
+            'message' => 'El ticket se ha encontrado',
+            'data_count' => 1
+        ], 200);
     }
 }
