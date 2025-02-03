@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Repositories\Payment\PaymentRepositoryInterface;
 use App\Models\Payment;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
@@ -33,6 +34,12 @@ class PaymentController extends Controller
      */
     public function store(Request $request)
     {
+        if (!Auth::user()->is_admin) {
+            return response()->json([
+                'message' => 'No tienes permisos para realizar esta acción'
+            ], 403);
+        }
+
         $request->validate([
             'registration_id' => 'required|exists:registrations,id',
             'amount' => 'required|numeric|min:0.01',
@@ -74,6 +81,12 @@ class PaymentController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (!Auth::user()->is_admin) {
+            return response()->json([
+                'message' => 'No tienes permisos para realizar esta acción'
+            ], 403);
+        }
+
         $payments = $this->paymentRepository->update($id, $request->all());
 
         if (!$payments) {
@@ -92,6 +105,12 @@ class PaymentController extends Controller
      */
     public function destroy($id)
     {
+        if (!Auth::user()->is_admin) {
+            return response()->json([
+                'message' => 'No tienes permisos para realizar esta acción'
+            ], 403);
+        }
+
         $payments = $this->paymentRepository->delete($id);
 
         if (!$payments) {
@@ -108,8 +127,8 @@ class PaymentController extends Controller
     /**
      * Method for process the payment
      */
-    public function process(Request $request){
-
+    public function process(Request $request)
+    {
         $validate = $request->validate([
             'registration_id' => 'required|exists:registrations,id',
             'amount' => 'required|numeric|min:0.01',

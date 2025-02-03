@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Speaker;
+use Illuminate\Support\Facades\Auth;
 use App\Repositories\Speaker\SpeakerRepositoryInterface;
 use Illuminate\Http\Request;
 
@@ -33,6 +34,12 @@ class SpeakerController extends Controller
      */
     public function store(Request $request)
     {
+        if (!Auth::user()->is_admin) {
+            return response()->json([
+                'message' => 'No tienes permisos para realizar esta acción'
+            ], 403);
+        }
+
         $request->validate([
             'name' => 'required|string|max:255', 
             'photo_url' => 'nullable|url', 
@@ -73,6 +80,12 @@ class SpeakerController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (!Auth::user()->is_admin) {
+            return response()->json([
+                'message' => 'No tienes permisos para realizar esta acción'
+            ], 403);
+        }
+
         $request->validate([
             'name' => 'required|string|max:255', 
             'photo_url' => 'nullable|url', 
@@ -99,6 +112,12 @@ class SpeakerController extends Controller
      */
     public function destroy($id)
     {
+        if (!Auth::user()->is_admin) {
+            return response()->json([
+                'message' => 'No tienes permisos para realizar esta acción'
+            ], 403);
+        }
+
         $speakers = $this->speakerRepository->delete($id);
 
         if (!$speakers) {
