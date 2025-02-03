@@ -70,7 +70,7 @@ class SpeakerController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Speaker $speaker)
+    public function destroy($id)
     {
         $speakers = Speaker::find($id);
         $speakers->delete();
