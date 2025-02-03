@@ -14,7 +14,7 @@ use App\Repositories\Speaker\SpeakerRepositoryInterface;
 use App\Repositories\User\UserRepositoryInterface;
 use App\Repositories\User\UserRepository;
 
-class Repository extends ServiceProvider {
+class RepositoryServiceProvider extends ServiceProvider {
     /**
      * Register any application services.
      */
