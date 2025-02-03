@@ -9,7 +9,7 @@ use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\AdminController;
 
-Route::prefix('api/v1')->group(function () {
+Route::prefix('v1')->group(function () {
 
     // Auntenticación
     Route::post('/register', [AuthController::class, 'register']);
