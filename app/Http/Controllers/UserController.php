@@ -28,6 +28,12 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        if (!$request->user()->is_admin) {
+            return response()->json([
+                'message' => 'No tienes permisos para realizar esta acción'
+            ], 403);
+        }
+
         $user = $this->userRepository->create($request->all());
         return response()->json($user, 201);
     }
@@ -56,6 +62,12 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        if (!$request->user()->is_admin) {
+            return response()->json([
+                'message' => 'No tienes permisos para realizar esta acción'
+            ], 403);
+        }
+
         $users = $this->userRepository->findById($id);
 
         if (!$users) {
@@ -76,6 +88,12 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
+        if (!request()->user()->is_admin) {
+            return response()->json([
+                'message' => 'No tienes permisos para realizar esta acción'
+            ], 403);
+        }
+
         $users = $this->userRepository->delete($id);
 
         if (!$users) {
@@ -90,6 +108,12 @@ class UserController extends Controller
     }
 
     public function setRegistrationType(Request $request, $id){
+        if (!$request->user()->is_admin) {
+            return response()->json([
+                'message' => 'No tienes permisos para realizar esta acción'
+            ], 403);
+        }
+
         $users = $this->userRepository->findById($id);
 
         if (!$users) {

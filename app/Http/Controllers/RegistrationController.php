@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Registration;
 use App\Repositories\Registration\RegistrationRepositoryInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class RegistrationController extends Controller
 {
@@ -33,6 +34,12 @@ class RegistrationController extends Controller
      */
     public function store(Request $request)
     {
+        if (!Auth::user()->is_admin) {
+            return response()->json([
+                'message' => 'No tienes permiso para realizar esta acción'
+            ], 403);
+        }
+
         $validateData = $request->validate([
             'user_id' => 'required|exists:users,id',  
             'registration_type' => 'required|string|max:255',
@@ -73,6 +80,12 @@ class RegistrationController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (!Auth::user()->is_admin) {
+            return response()->json([
+                'message' => 'No tienes permiso para realizar esta acción'
+            ], 403);
+        }
+
         $validateData = $request->validate([
             'user_id' => 'required|exists:users,id',  
             'registration_type' => 'required|string|max:255',
@@ -100,6 +113,12 @@ class RegistrationController extends Controller
      */
     public function destroy($id)
     {
+        if (!Auth::user()->is_admin) {
+            return response()->json([
+                'message' => 'No tienes permiso para realizar esta acción'
+            ], 403);
+        }
+
         $registrations = $this->registrationRepository->delete($id);
 
         if (!$registrations) {

@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Repositories\Event\EventRepositoryInterface;
-
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class EventController extends Controller
 {
@@ -33,6 +33,12 @@ class EventController extends Controller
      */
     public function store(Request $request)
     {
+        if (!Auth::user()->is_admin) {
+            return response()->json([
+                'message' => 'No tienes permisos para realizar esta acción'
+            ], 403);
+        }
+
         $validatedData = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -77,6 +83,12 @@ class EventController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (!Auth::user()->is_admin) {
+            return response()->json([
+                'message' => 'No tienes permisos para realizar esta acción'
+            ], 403);
+        }
+
         $validatedData = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -107,6 +119,12 @@ class EventController extends Controller
      */
     public function destroy($id)
     {
+        if (!Auth::user()->is_admin) {
+            return response()->json([
+                'message' => 'No tienes permisos para realizar esta acción'
+            ], 403);
+        }
+
         $events = $this->eventRepository->delete($id);
 
         if (!$events) {
