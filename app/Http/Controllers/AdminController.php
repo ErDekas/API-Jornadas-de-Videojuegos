@@ -17,6 +17,7 @@ class AdminController extends Controller
         $attendees = User::where('is_admin', false)->get();
 
         return response()->json([
+            'data_count' => $attendees->count(),
             'message' => 'La lista de asistentes ha sido obtenida con éxito',
             'attendees' => $attendees
         ]);
@@ -30,6 +31,7 @@ class AdminController extends Controller
         $payments = Payment::all();
 
         return response()->json([
+            'data_count' => $payments->count(),
             'message' => 'La lista de pagos obtenida con éxito',
             'payments' => $payments
         ]);
@@ -47,6 +49,7 @@ class AdminController extends Controller
         $totalRegistrations = Registration::count();
 
         return response()->json([
+            'data_count' => 1,
             'message' => 'Las estadísticas han sido obtenidas con éxito',
             'total_users' => $totalUsers,
             'total_attendees' => $totalAttendees,

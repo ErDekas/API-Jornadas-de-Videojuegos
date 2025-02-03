@@ -14,8 +14,8 @@ class EventController extends Controller
     {
         $events = Event::all();
         return response()->json([
-            'events' => $events,
-            'data_count' => $events->count()
+            'data_count' => $events->count(),
+            'events' => $events
         ], 200);
     }
 
@@ -153,10 +153,10 @@ class EventController extends Controller
         }
 
         return response()->json([
+            'data_count' => $attendees->count(),
             'event_id' => $event->id,
             'title' => $event->title,
-            'attendees' => $attendees,
-            'data_count' => $attendees->count()
+            'attendees' => $attendees
         ], 200);
     }
 }
