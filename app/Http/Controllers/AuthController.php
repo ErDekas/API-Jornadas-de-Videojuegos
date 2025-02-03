@@ -17,7 +17,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|unique:users',
             'password' => 'required|string|min:6|confirmed',
-            'registration_type' => 'required|string|in:Virtual,Presencial,Estudiante',
+            'registration_type' => 'required|string|in:virtual,presential,student',
             'is_admin' => 'boolean',
         ]);
     
