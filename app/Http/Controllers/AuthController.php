@@ -44,7 +44,7 @@ class AuthController extends Controller
         ],201);
     }
 
-     /**
+    /**
      * Log in with a email and password
      */
     public function login(Request $request)
@@ -56,8 +56,8 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !$user->password || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Las credenciales introducidas no son correctas']);
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'Las credenciales introducidas no son correctas'], 401);
         }
 
         if (!$user->email_verified_at) {
@@ -70,6 +70,19 @@ class AuthController extends Controller
             'message' => 'El inicio de sesión ha salido correctamente',
             'token' => $token,
             'user' => $user
+        ],200);
+    }
+
+    /**
+     * Log out in the account of the API
+     */
+    public function logout(Request $request){
+        $request->user()->tokens->each(function ($token){
+            $token->delete();
+        });
+
+        return response()->json([
+            'message' => 'Se ha cerrado sesión correctamente'
         ],200);
     }
 

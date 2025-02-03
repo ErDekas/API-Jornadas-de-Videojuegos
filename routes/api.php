@@ -15,7 +15,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
 
-    //Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware('auth:sanctum')->group(function () {
         // Gestión de usuarios/asistentes
         Route::apiResource('users', UserController::class);
         Route::post('/user/registration-type', [UserController::class, 'setRegistrationType']);
@@ -42,5 +42,5 @@ Route::prefix('v1')->group(function () {
             Route::get('/admin/payments', [AdminController::class, 'listPayments']);
             Route::get('/admin/statistics', [AdminController::class, 'getStatistics']);
         });
-    //});
+    });
 });
