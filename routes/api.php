@@ -13,7 +13,7 @@ Route::prefix('v1')->group(function () {
     // Autenticación
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
     Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
 
     Route::middleware('auth:sanctum')->group(function () {
