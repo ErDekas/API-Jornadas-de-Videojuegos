@@ -24,6 +24,15 @@ class PaymentController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'registration_id' => 'required|exists:registrations,id',
+            'amount' => 'required|numeric|min:0.01',
+            'payment_method' => 'required|string|in:card,paypal',
+            'transaction_id' => 'required|string|unique:payments,transaction_id',
+            'status' => 'required|string|in:pending,completed,failed',
+            'paypal_order_id' => 'nullable|string',
+        ]);
+
         $payments = new Payment;
 
         $payments->registration_id = $request->registration_id;
@@ -32,6 +41,9 @@ class PaymentController extends Controller
         $payments->transaction_id = $request->transaction_id;
         $payments->status = $request->status;
         $payments->paypal_order_id = $request->paypal_order_id;
+
+        $payments->save();
+
 
         return response()->json([
             "message" => "El pago ha sido agregado correctamente",
@@ -78,6 +90,8 @@ class PaymentController extends Controller
         $payments->transaction_id = $request->transaction_id;
         $payments->status = $request->status;
         $payments->paypal_order_id = $request->paypal_order_id;
+
+        $payments->save();
 
         return response()->json([
             "message" => "El pago ha sido actualizado correctamente",

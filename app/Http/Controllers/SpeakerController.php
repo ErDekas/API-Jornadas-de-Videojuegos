@@ -24,12 +24,22 @@ class SpeakerController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'name' => 'required|string|max:255', 
+            'photo_url' => 'nullable|url', 
+            'social_links' => 'nullable|array',
+            'social_links.*' => 'nullable|url',
+            'exprestise_areas' => 'nullable|string', 
+        ]);
+
         $speakers = new Speaker;
 
         $speakers->name = $request->name;
         $speakers->photo_url = $request->photo_url;
         $speakers->social_links = $request->social_links;
         $speakers->exprestise_areas = $request->exprestise_areas;
+
+        $speakers->save();
 
         return response()->json([
             "message" => "El ponente ha sido agregado correctamente",
@@ -74,6 +84,8 @@ class SpeakerController extends Controller
         $speakers->photo_url = $request->photo_url;
         $speakers->social_links = $request->social_links;
         $speakers->exprestise_areas = $request->exprestise_areas;
+
+        $speakers->save();
 
         return response()->json([
             "message" => "El ponente ha sido actualizado correctamente",

@@ -24,6 +24,14 @@ class RegistrationController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',  
+            'registration_type' => 'required|string|max:255',
+            'total_amount' => 'required|numeric|min:0.01', 
+            'payment_status' => 'required|string|in:pending,completed,failed', 
+            'ticket_code' => 'required|string|max:255|unique:registrations,ticket_code', 
+        ]);
+
         $registrations = new Registration;
 
         $registrations->user_id = $request->user_id;
@@ -31,6 +39,8 @@ class RegistrationController extends Controller
         $registrations->total_amount = $request->total_amount;
         $registrations->payment_status = $request->payment_status;
         $registrations->ticket_code = $request->ticket_code;
+
+        $registrations->save();
 
         return response()->json([
             "message" => "La inscripción ha sido agregada correctamente",
@@ -77,6 +87,8 @@ class RegistrationController extends Controller
         $registrations->total_amount = $request->total_amount;
         $registrations->payment_status = $request->payment_status;
         $registrations->ticket_code = $request->ticket_code;
+
+        $registrations->save();
 
         return response()->json([
             "message" => "La inscripción ha sido actualizada correctamente",

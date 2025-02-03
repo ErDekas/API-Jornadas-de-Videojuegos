@@ -24,6 +24,18 @@ class EventController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'type' => 'required|string',
+            'date' => 'required|date',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date',
+            'max_attendees' => 'required|integer',
+            'current_attendees' => 'required|integer',
+            'location' => 'required|string|max:255',
+        ]);
+
         $events = new Event;
         
         $events->title = $request->title;
@@ -35,6 +47,8 @@ class EventController extends Controller
         $events->max_attendees = $request->max_attendees;
         $events->current_attendees = $request->current_attendees;
         $events->location = $request->location;
+
+        $events->save();
 
         return response()->json([
             "message" => "El evento ha sido agregado correctamente",
@@ -85,6 +99,8 @@ class EventController extends Controller
         $events->current_attendees = $request->current_attendees;
         $events->location = $request->location;
 
+        $events->save();
+
         return response()->json([
             "message" => "El evento ha sido actualizado correctamente",
             'data_count' => 1
@@ -97,9 +113,11 @@ class EventController extends Controller
     public function destroy($id)
     {
         $events = Event::find($id);
-        return response()->json([
-            'message' => 'El evento no se ha encontrado'
-        ], 404);
+        if (!$events) {
+            return response()->json([
+                'message' => 'El evento no se ha encontrado'
+            ], 404);
+        }
         $events->delete();
 
         return response()->json([

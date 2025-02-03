@@ -65,6 +65,8 @@ class UserController extends Controller
         $users->email_verified_at = $request->email_verified_at;
         $users->student_verified = $request->student_verified;
 
+        $users->save();
+
         return response()->json([
             "message" => "El usuario ha sido actualizado correctamente",
             'data_count' => 1
@@ -102,6 +104,8 @@ class UserController extends Controller
         }
         
         $users->registration_type = $request->registration_type;
+
+        $users->save();
 
         return response()->json([
             "message" => "El usuario ha sido actualizado correctamente"
