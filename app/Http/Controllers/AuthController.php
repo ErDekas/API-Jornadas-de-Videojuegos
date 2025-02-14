@@ -96,7 +96,7 @@ class AuthController extends Controller
         if (!$user) {
             return response()->json(['message' => 'El usuario no se ha encontrado']);
         }
-    
+
         if ($user->email_verified_at) {
             return response()->json(['message' => 'Este email ya está verificado']);
         }
