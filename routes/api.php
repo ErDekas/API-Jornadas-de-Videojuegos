@@ -15,7 +15,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/password/forgot', [AuthController::class, 'resetPassword']);
-    Route::post('/password/reset', [AuthController::class, 'updatePassword']);
+    Route::post('/password/reset', [AuthController::class, 'updatePassword'])->name('password.reset');
     Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
     Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
 
