@@ -20,6 +20,7 @@ return new class extends Migration
             $table->boolean('is_admin')->default(false);
             $table->boolean('student_verified')->default(false);
             $table->timestamp('email_verified_at')->nullable();
+            $table->boolean('is_first_login')->default(true);
             $table->rememberToken();
             $table->timestamps();
         });

@@ -62,9 +62,11 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        if (!$request->user()->is_admin) {
+        $currentUser = $request->user();
+
+        if (!$currentUser || ($currentUser->id != $id && !$currentUser->is_admin)) {
             return response()->json([
-                'message' => 'No tienes permisos para realizar esta acción'
+                'message' => 'No tienes permisos para realizar esta accion'
             ], 403);
         }
 
@@ -128,4 +130,26 @@ class UserController extends Controller
             "message" => "El usuario ha sido actualizado correctamente"
         ], 200);
     }
+
+
+    public function updateFirstLogin(Request $request, string $id)
+    {
+        // Buscar al usuario
+        $user = $this->userRepository->findById($id);
+
+        if (!$user) {
+            return response()->json(['message' => 'El usuario no se ha encontrado'], 404);
+        }
+
+        // Actualizar en la base de datos
+        $updateUser = $this->userRepository->update($id, ['is_first_login' => $request->is_first_login]);
+
+        if (!$updateUser) {
+            return response()->json(['message' => 'Error al actualizar el usuario'], 500);
+        }
+
+        return response()->json(['message' => 'El usuario ha sido actualizado correctamente'], 200);
+    }
+
+
 }

@@ -24,10 +24,13 @@ class User extends Authenticatable implements CanResetPasswordContract
         'email',
         'password',
         'registration_type', // Virtual, Presencial, Estudiante
+        'is_first_login',
         'is_admin',
         'email_verified_at',
         'student_verified'
     ];
+
+
 
     /**
      * The attributes that should be hidden for serialization.
