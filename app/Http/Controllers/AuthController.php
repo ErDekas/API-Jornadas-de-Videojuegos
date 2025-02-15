@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -115,74 +115,128 @@ class AuthController extends Controller
         ], 200);
     }
 
-
-public function resetPassword(Request $request)
-{
-    // Validación del correo
-    $user = User::where('email', $request->email)->first();
-    if (!$user) {
-        Log::warning('User not found for email: ' . $request->email);
-        return response()->json(['message' => 'El usuario no se ha encontrado'], 404);
-    }
-    try {
-        // Intentar enviar el enlace de restablecimiento de contraseña
-        $response = Password::sendResetLink(
-            $request->only('email')
-        );
-
-        // Verificar si el enlace fue enviado correctamente
-        if ($response === Password::RESET_LINK_SENT) {
-            return response()->json(['message' => 'Se ha enviado un enlace para restablecer la contraseña a tu correo electrónico.'], 200);
-        }
-
-        // Si hubo un error (por ejemplo, el correo no está registrado o hay algún problema con el envío)
-        Log::error('Error sending password reset link', [
-            'email' => $request->email,
-            'response' => $response
-        ]);
-        return response()->json(['message' => 'Hubo hubo  huboo un problema al enviar el enlace de restablecimiento de contraseña.'], 400);
-        
-    } catch (ValidationException $e) {
-        // Capturar errores de validación específicos, como correo inválido
-        Log::error('Validation error when trying to send password reset link', [
-            'email' => $request->email,
-            'error' => $e->getMessage()
-        ]);
-        return response()->json(['message' => 'El correo electrónico proporcionado es inválido.'], 422);
-    } catch (\Exception $e) {
-        // Capturar cualquier otro tipo de excepción
-        Log::error('Unexpected error when trying to send password reset link', [
-            'email' => $request->email,
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ]);
-        
-        //return response()->json(['message' => 'Hubo hubo un problema al procesar la solicitud. Por favor, intenta nuevamente más tarde.'], 500);
-        return response()->json(['message' => $e->getMessage()], 500);
-
-    }
-}
-
-
     /**
-     * Update the password when an User didn't remember it
+     * Iniciar el proceso de restablecimiento de contraseña
      */
-    public function updatePassword(Request $request)
+    public function forgotPassword(Request $request)
     {
         $request->validate([
-            'current_password' => 'required|string',
-            'new_password' => 'required|string|min:6|confirmed',
+            'email' => 'required|email'
         ]);
 
-        $user = $request->user();
+        $user = User::where('email', $request->email)->first();
 
-        if (!Hash::check($request->current_password, $user->password)) {
-            return response()->json(['message' => 'La contraseña actual no es correcta'], 403);
+        if (!$user) {
+            return response()->json([
+                'message' => 'No encontramos un usuario con ese correo electrónico'
+            ], 404);
         }
 
-        $user->password = bcrypt($request->new_password);
+        // Generar token único
+        $token = Str::random(64);
+
+        // Guardar el token en la base de datos
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $request->email],
+            [
+                'email' => $request->email,
+                'token' => $token,
+                'created_at' => Carbon::now()
+            ]
+        );
+
+        return response()->json([
+            'message' => 'Se ha enviado un enlace de restablecimiento a tu correo electrónico',
+            'success' => true,
+            'token' => $token,
+            'user' => [
+                'name' => $user->name,
+                'email' => $user->email
+            ]
+        ]);
+    }
+
+    /**
+     * Verificar si el token de restablecimiento es válido
+     */
+    public function verifyResetToken(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email'
+        ]);
+
+        $resetRecord = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->where('token', $request->token)
+            ->first();
+
+        if (!$resetRecord) {
+            return response()->json([
+                'message' => 'Token inválido',
+                'success' => false
+            ], 400);
+        }
+
+        // Verificar si el token ha expirado (24 horas)
+        $createdAt = Carbon::parse($resetRecord->created_at);
+        if ($createdAt->addHours(24)->isPast()) {
+            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+            return response()->json([
+                'message' => 'El token ha expirado',
+                'success' => false
+            ], 400);
+        }
+
+        return response()->json([
+            'message' => 'Token válido',
+            'success' => true
+        ]);
+    }
+
+    /**
+     * Restablecer la contraseña
+     */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:6|confirmed'
+        ]);
+
+        $resetRecord = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->where('token', $request->token)
+            ->first();
+
+        if (!$resetRecord) {
+            return response()->json([
+                'message' => 'Token inválido',
+                'success' => false
+            ], 400);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'No se encontró el usuario',
+                'success' => false
+            ], 404);
+        }
+
+        // Actualizar contraseña
+        $user->password = Hash::make($request->password);
         $user->save();
 
-        return response()->json(['message' => 'Contraseña actualizada correctamente'], 200);
+        // Eliminar el token usado
+        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+        
+        return response()->json([
+            'message' => 'Contraseña actualizada correctamente',
+            'success' => true
+        ]);
     }
 }
