@@ -11,6 +11,12 @@ use App\Http\Controllers\AdminController;
 
 Route::prefix('v1')->group(function () {
 
+    // Rutas públicas
+    Route::get('/events', [EventController::class, 'index']); // Listar eventos
+    Route::get('/events/{event}', [EventController::class, 'show']); // Ver detalle de un evento
+    Route::get('/speakers', [SpeakerController::class, 'index']); // Listar ponentes
+    Route::get('/speakers/{speaker}', [SpeakerController::class, 'show']); // Ver detalle de un ponente
+
     // Autenticación
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
@@ -20,19 +26,24 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
     Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
 
+    // Rutas protegidas
     Route::middleware('auth:sanctum')->group(function () {
         // Gestión de usuarios/asistentes
         Route::apiResource('users', UserController::class);
         Route::put('/user/updateFirstLogin/{user}', [UserController::class, 'updateFirstLogin']);
         Route::post('/user/registration-type', [UserController::class, 'setRegistrationType']);
 
-        // Gestión de eventos
-        Route::apiResource('events', EventController::class);
+        // Gestión de eventos (Solo autenticados pueden crear, actualizar o eliminar)
+        Route::post('/events', [EventController::class, 'store']);
+        Route::put('/events/{event}', [EventController::class, 'update']);
+        Route::delete('/events/{event}', [EventController::class, 'destroy']);
         Route::get('/events/{event}/availability', [EventController::class, 'checkAvailability']);
         Route::get('/events/{event}/register', [EventController::class, 'registerAttendee']);
 
-        // Gestión de ponentes
-        Route::apiResource('speakers', SpeakerController::class);
+        // Gestión de ponentes (Solo autenticados pueden modificar)
+        Route::post('/speakers', [SpeakerController::class, 'store']);
+        Route::put('/speakers/{speaker}', [SpeakerController::class, 'update']);
+        Route::delete('/speakers/{speaker}', [SpeakerController::class, 'destroy']);
 
         // Gestión de inscripciones
         Route::post('/registrations', [RegistrationController::class, 'store']);
