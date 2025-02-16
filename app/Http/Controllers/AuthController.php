@@ -64,7 +64,7 @@ class AuthController extends Controller
         }
 
         if (!$user->email_verified_at) {
-            return response()->json(['message' => 'El correo debe estar verificado antes de iniciar sesión']);
+            return response()->json(['message' => 'El correo debe estar verificado antes de iniciar sesión'], 402);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
