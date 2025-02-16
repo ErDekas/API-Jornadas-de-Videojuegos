@@ -88,7 +88,7 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function delete(string $id)
     {
         if (!request()->user()->is_admin) {
             return response()->json([
