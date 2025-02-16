@@ -27,7 +27,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
 
     // Rutas protegidas
-    Route::middleware('auth:sanctum')->group(function () {
+    // Route::middleware('auth:sanctum')->group(function () {
         // Gestión de usuarios/asistentes
         Route::apiResource('users', UserController::class);
         Route::put('/user/updateFirstLogin/{user}', [UserController::class, 'updateFirstLogin']);
@@ -38,7 +38,8 @@ Route::prefix('v1')->group(function () {
         Route::put('/events/{event}', [EventController::class, 'update']);
         Route::delete('/events/{event}', [EventController::class, 'destroy']);
         Route::get('/events/{event}/availability', [EventController::class, 'checkAvailability']);
-        Route::get('/events/{event}/register', [EventController::class, 'registerAttendee']);
+        Route::get('/events/{id}/register', [EventController::class, 'registerAttendee']);
+        Route::post('/events/{id}/register', [EventController::class, 'registerAttendee']);
 
         // Gestión de ponentes (Solo autenticados pueden modificar)
         Route::post('/speakers', [SpeakerController::class, 'store']);
@@ -60,4 +61,4 @@ Route::prefix('v1')->group(function () {
             Route::get('/admin/statistics', [AdminController::class, 'getStatistics']);
         });
     });
-});
+// });
