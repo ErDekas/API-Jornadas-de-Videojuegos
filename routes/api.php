@@ -26,6 +26,8 @@ Route::prefix('v1')->group(function () {
     Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
     Route::get('/users', [UserController::class, 'index']); // Listar usuarios
     Route::get('/users/{user}', [UserController::class, 'show']); // Ver detalle de un usuario
+    Route::post('/speakers', [SpeakerController::class, 'store']);
+    
     // Rutas protegidas (requieren autenticación)
     Route::middleware('auth:sanctum')->group(function () {
         
@@ -46,7 +48,6 @@ Route::prefix('v1')->group(function () {
         Route::get('/events/{event}/register', [EventController::class, 'registerAttendee']);
 
         // Gestión de ponentes (Solo autenticados pueden modificar)
-        Route::post('/speakers', [SpeakerController::class, 'store']);
         Route::put('/speakers/{speaker}', [SpeakerController::class, 'update']);
         Route::delete('/speakers/{speaker}', [SpeakerController::class, 'destroy']);
 
