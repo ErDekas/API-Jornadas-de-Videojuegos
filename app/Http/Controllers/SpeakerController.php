@@ -43,7 +43,7 @@ class SpeakerController extends Controller
         $request->validate([
             'name' => 'required|string|max:255', 
             'photo_url' => 'nullable|url', 
-            'social_links' => 'nullable|array',
+            'social_links' => 'nullable',
             'social_links.*' => 'nullable|url',
             'exprestise_areas' => 'nullable|string', 
         ]);
@@ -89,7 +89,7 @@ class SpeakerController extends Controller
         $request->validate([
             'name' => 'required|string|max:255', 
             'photo_url' => 'nullable|url', 
-            'social_links' => 'nullable|array',
+            'social_links' => 'nullable',
             'social_links.*' => 'nullable|url',
             'exprestise_areas' => 'nullable|string',
         ]);
