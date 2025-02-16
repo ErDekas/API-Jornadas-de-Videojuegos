@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Repositories\Event\EventRepositoryInterface;
+use App\Repositories\User\UserRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -11,10 +12,12 @@ use Illuminate\Support\Facades\Auth;
 class EventController extends Controller
 {
     protected $eventRepository;
+    protected $userRepository;
 
-    public function __construct(EventRepositoryInterface $eventRepository)
+    public function __construct(EventRepositoryInterface $eventRepository, UserRepositoryInterface $userRepository)
     {
         $this->eventRepository = $eventRepository;
+        $this->userRepository = $userRepository;
     }
 
     /**
@@ -189,7 +192,11 @@ class EventController extends Controller
         // Registrar al usuario en el evento
         $event->attendees()->attach($userId);
 
-        $event->increment('current_attendees');
+        $user = $this->userRepository->findById($userId);
+
+        if($user['registration_type'] !== 'virtual'){
+            $event->increment('current_attendees');
+        }
 
         return response()->json([
             'message' => 'Registro exitoso',
