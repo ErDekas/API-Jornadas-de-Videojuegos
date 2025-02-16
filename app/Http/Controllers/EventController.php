@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Repositories\Event\EventRepositoryInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 
 class EventController extends Controller
@@ -178,12 +179,6 @@ class EventController extends Controller
         // Obtener el usuario autenticado (o desde la solicitud si viene como parámetro)
         $userId = $request->user()->id ?? $request->input('user_id');
 
-        if (!$userId) {
-            return response()->json([
-                'message' => 'Usuario no autenticado o no proporcionado'
-            ], 401);
-        }
-
         // Verificar si el usuario ya está registrado
         if ($event->attendees()->where('user_id', $userId)->exists()) {
             return response()->json([
@@ -193,6 +188,8 @@ class EventController extends Controller
 
         // Registrar al usuario en el evento
         $event->attendees()->attach($userId);
+
+        $event->increment('current_attendees');
 
         return response()->json([
             'message' => 'Registro exitoso',
