@@ -32,7 +32,7 @@ Route::prefix('v1')->group(function () {
         // Gestión de usuarios/asistentes (con acciones específicas)
         Route::post('/users', [UserController::class, 'store']); // Crear un nuevo usuario
         Route::put('/users/{user}', [UserController::class, 'update']); // Actualizar un usuario
-        Route::delete('/users/{user}', [UserController::class, 'destroy']); // Eliminar un usuario
+        Route::delete('/users/{user}', [UserController::class, 'delete']); // Eliminar un usuario
         
         Route::put('/user/updateFirstLogin/{user}', [UserController::class, 'updateFirstLogin']);
         Route::post('/user/registration-type', [UserController::class, 'setRegistrationType']);
