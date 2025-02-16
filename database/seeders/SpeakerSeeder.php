@@ -13,7 +13,7 @@ class SpeakerSeeder extends Seeder
         $speakers = [
             [
                 'name' => 'Ana García',
-                'photo_url' => 'speakers/ana.jpg',
+                'photo_url' => 'images/user3.webp',
                 'social_links' => json_encode([
                     'linkedin' => 'https://linkedin.com/in/ana-garcia',
                     'twitter' => 'https://twitter.com/anagarcia',
@@ -23,7 +23,7 @@ class SpeakerSeeder extends Seeder
             ],
             [
                 'name' => 'Carlos Rodríguez',
-                'photo_url' => 'speakers/carlos.jpg',
+                'photo_url' => 'images/user1.webp',
                 'social_links' => json_encode([
                     'linkedin' => 'https://linkedin.com/in/carlos-rodriguez',
                     'github' => 'https://github.com/carlosrodriguez'
@@ -32,7 +32,7 @@ class SpeakerSeeder extends Seeder
             ],
             [
                 'name' => 'Laura Martínez',
-                'photo_url' => 'speakers/laura.jpg',
+                'photo_url' => 'images/user2.webp',
                 'social_links' => json_encode([
                     'linkedin' => 'https://linkedin.com/in/laura-martinez',
                     'twitter' => 'https://twitter.com/lauramartinez'
@@ -41,7 +41,7 @@ class SpeakerSeeder extends Seeder
             ],
             [
                 'name' => 'David Sánchez',
-                'photo_url' => 'speakers/david.jpg',
+                'photo_url' => 'images/user4.webp',
                 'social_links' => json_encode([
                     'linkedin' => 'https://linkedin.com/in/david-sanchez',
                     'github' => 'https://github.com/davidsanchez'
