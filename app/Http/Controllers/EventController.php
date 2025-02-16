@@ -52,10 +52,10 @@ class EventController extends Controller
         ]);
 
         $events = $this->eventRepository->create($validatedData);
-          
+
         return response()->json([
             "message" => "El evento ha sido agregado correctamente",
-            'data_count' => 1 
+            'data_count' => 1
         ], 201);
     }
 
@@ -66,12 +66,11 @@ class EventController extends Controller
     {
         $events = $this->eventRepository->findById($id);
 
-        if(!empty($events)){
+        if (!empty($events)) {
             return response()->json([
                 'event' => $events
             ], 200);
-        }
-        else{
+        } else {
             return response()->json([
                 "message" => "El evento no se ha encontrado"
             ], 404);
@@ -106,7 +105,7 @@ class EventController extends Controller
         if (!$events) {
             return response()->json([
                 'message' => 'El evento no se ha encontrado'
-            ], 404); 
+            ], 404);
         }
 
         return response()->json([
@@ -135,14 +134,15 @@ class EventController extends Controller
 
         return response()->json([
             "message" => "El evento ha sido borrado correctamente",
-            'data_count' => 0 
+            'data_count' => 0
         ], 200);
     }
 
     /**
      * Method to check the availability of the event
      */
-    public function checkAvailability($id){
+    public function checkAvailability($id)
+    {
         $event = $this->eventRepository->findById($id);
 
         if (!$event) {
@@ -162,9 +162,11 @@ class EventController extends Controller
     }
 
     /**
-     * Method to see the attendee of the event
+     * Method to register an attendee to an event
      */
-    public function registerAttendee($id){
+    public function registerAttendee(Request $request, $id)
+    {
+        // Buscar el evento
         $event = $this->eventRepository->findById($id);
 
         if (!$event) {
@@ -173,20 +175,28 @@ class EventController extends Controller
             ], 404);
         }
 
-        $attendees = $event->attendees()->select('users.id', 'users.name', 'users.email')->get();
+        // Obtener el usuario autenticado (o desde la solicitud si viene como parámetro)
+        $userId = $request->user()->id ?? $request->input('user_id');
 
-        if ($attendees->isEmpty()) {
+        if (!$userId) {
             return response()->json([
-                'message' => 'Este evento no tiene asistentes registrados',
-                'data_count' => 0 
-            ], 200);
+                'message' => 'Usuario no autenticado o no proporcionado'
+            ], 401);
         }
 
+        // Verificar si el usuario ya está registrado
+        if ($event->attendees()->where('user_id', $userId)->exists()) {
+            return response()->json([
+                'message' => 'El usuario ya está registrado en este evento'
+            ], 409);
+        }
+
+        // Registrar al usuario en el evento
+        $event->attendees()->attach($userId);
+
         return response()->json([
-            'data_count' => $attendees->count(),
-            'event_id' => $event->id,
-            'title' => $event->title,
-            'attendees' => $attendees->isEmpty() ? 'No hay asistentes registrados en este evento' : $attendees
-        ], 200);
+            'message' => 'Registro exitoso',
+            'event_id' => $event->id
+        ], 201);
     }
 }
