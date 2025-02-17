@@ -191,7 +191,7 @@ class EventController extends Controller
 
         // Registrar al usuario en el evento
         $event->attendees()->attach($userId);
-
+        
         $user = $this->userRepository->findById($userId);
 
         if($user['registration_type'] !== 'virtual'){
