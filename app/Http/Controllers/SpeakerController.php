@@ -63,9 +63,12 @@ class SpeakerController extends Controller
     {
         $speakers = $this->speakerRepository->findById($id);
 
+        $eventSpeaker = $speakers->events; 
+
         if(!empty($speakers)){
             return response()->json([
-                'speaker' => $speakers
+                'speaker' => $speakers,
+                'eventSpeaker' => $eventSpeaker
             ], 200);
         }
         else{
@@ -130,4 +133,5 @@ class SpeakerController extends Controller
             "message" => "El ponente ha sido borrado correctamente"
         ], 200);
     }
+
 }

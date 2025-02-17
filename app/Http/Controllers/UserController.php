@@ -45,9 +45,12 @@ class UserController extends Controller
     {
         $users = $this->userRepository->findById($id);
 
+        $eventUser = $users->events;
+
         if(!empty($users)){
             return response()->json([
-                'users' => $users
+                'users' => $users,
+                'eventUser' => $eventUser
             ], 200);
         }
         else{
