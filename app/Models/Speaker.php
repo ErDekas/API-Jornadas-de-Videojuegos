@@ -13,12 +13,12 @@ class Speaker extends Model
         'name',
         'photo_url',
         'social_links',
-        'exprestise_areas'
+        'expertise_areas'
     ];
 
     protected $casts = [
         'social_links' => 'array',
-        'experstise_areas' => 'array'
+        'expertise_areas' => 'array'
     ];
 
     public function events()

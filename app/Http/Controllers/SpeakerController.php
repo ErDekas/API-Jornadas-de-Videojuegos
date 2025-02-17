@@ -45,7 +45,7 @@ class SpeakerController extends Controller
             'photo_url' => 'nullable|url', 
             'social_links' => 'nullable',
             'social_links.*' => 'nullable|url',
-            'exprestise_areas' => 'nullable|string', 
+            'expertise_areas' => 'nullable|array', 
         ]);
 
         $this->speakerRepository->create($request->all());
@@ -91,7 +91,7 @@ class SpeakerController extends Controller
             'photo_url' => 'nullable|url', 
             'social_links' => 'nullable',
             'social_links.*' => 'nullable|url',
-            'exprestise_areas' => 'nullable|string',
+            'expertise_areas' => 'nullable|array',
         ]);
 
         $speakers = $this->speakerRepository->update($id, $request->all());
