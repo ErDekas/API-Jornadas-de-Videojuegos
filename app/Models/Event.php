@@ -23,8 +23,8 @@ class Event extends Model
 
     protected $casts = [
         'date' => 'date',
-        'start_time' => 'datetime',
-        'end_time' => 'datetime'
+        // 'start_time' => 'time',
+        // 'end_time' => 'time'
     ];
 
     public function speakers()
