@@ -41,18 +41,27 @@ class SpeakerController extends Controller
         }
 
         $request->validate([
-            'name' => 'required|string|max:255', 
-            'photo_url' => 'nullable|url', 
+            'name' => 'required|string|max:255',
+            'photo_url' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'social_links' => 'nullable',
             'social_links.*' => 'nullable|url',
-            'expertise_areas' => 'nullable|array', 
+            'expertise_areas' => 'nullable|array',
         ]);
 
-        $this->speakerRepository->create($request->all());
+        $data = $request->all();
+
+        // Manejar la subida del archivo
+        if ($request->hasFile('photo_url')) {
+            $file = $request->file('photo_url');
+            $path = $file->store('images', 'public'); // Guarda en storage/app/public/speakers
+            $data['photo_url'] = url('storage/' . $path); // Guarda la URL completa
+        }
+
+        $this->speakerRepository->create($data);
 
         return response()->json([
             "message" => "El ponente ha sido agregado correctamente",
-            'data_count' => 1 
+            'data_count' => 1
         ], 201);
     }
 
@@ -63,15 +72,14 @@ class SpeakerController extends Controller
     {
         $speakers = $this->speakerRepository->findById($id);
 
-        $eventSpeaker = $speakers->events; 
+        $eventSpeaker = $speakers->events;
 
-        if(!empty($speakers)){
+        if (!empty($speakers)) {
             return response()->json([
                 'speaker' => $speakers,
                 'eventSpeaker' => $eventSpeaker
             ], 200);
-        }
-        else{
+        } else {
             return response()->json([
                 "message" => "El ponente no se ha encontrado"
             ], 404);
@@ -90,8 +98,8 @@ class SpeakerController extends Controller
         }
 
         $request->validate([
-            'name' => 'required|string|max:255', 
-            'photo_url' => 'nullable|url', 
+            'name' => 'required|string|max:255',
+            'photo_url' => 'nullable|url',
             'social_links' => 'nullable',
             'social_links.*' => 'nullable|url',
             'expertise_areas' => 'nullable|array',
@@ -102,7 +110,7 @@ class SpeakerController extends Controller
         if (!$speakers) {
             return response()->json([
                 'message' => 'El ponente no se ha encontrado'
-            ], 404); 
+            ], 404);
         }
 
         return response()->json([
@@ -126,12 +134,11 @@ class SpeakerController extends Controller
         if (!$speakers) {
             return response()->json([
                 'message' => 'El ponente no se ha encontrado'
-            ], 404); 
+            ], 404);
         }
 
         return response()->json([
             "message" => "El ponente ha sido borrado correctamente"
         ], 200);
     }
-
 }
