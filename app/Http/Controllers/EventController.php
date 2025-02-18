@@ -6,6 +6,7 @@ use App\Models\Event;
 use App\Repositories\Event\EventRepositoryInterface;
 use App\Repositories\User\UserRepositoryInterface;
 use Illuminate\Http\Request;
+use App\Http\Requests\EventRequest;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 
@@ -35,7 +36,7 @@ class EventController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(EventRequest $request)
     {
         if (!Auth::user()->is_admin) {
             return response()->json([
@@ -43,19 +44,7 @@ class EventController extends Controller
             ], 403);
         }
 
-        $validatedData = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'type' => 'required|string',
-            'date' => 'required|date',
-            'start_time' => 'required',
-            'end_time' => 'required',
-            'max_attendees' => 'required|integer',
-            'current_attendees' => 'required|integer',
-            'location' => 'required|string|max:255',
-        ]);
-
-        $events = $this->eventRepository->create($validatedData);
+        $events = $this->eventRepository->create($request->validated());
 
         return response()->json([
             "message" => "El evento ha sido agregado correctamente",
@@ -84,7 +73,7 @@ class EventController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(EventRequest $request, $id)
     {
         if (!Auth::user()->is_admin) {
             return response()->json([
@@ -92,19 +81,7 @@ class EventController extends Controller
             ], 403);
         }
 
-        $validatedData = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'type' => 'required|string',
-            'date' => 'required|date',
-            'start_time' => 'required',
-            'end_time' => 'required',
-            'max_attendees' => 'required|integer',
-            'current_attendees' => 'required|integer',
-            'location' => 'required|string|max:255',
-        ]);
-
-        $events = $this->eventRepository->update($id, $validatedData);
+        $events = $this->eventRepository->update($id, $request->validated());
 
         if (!$events) {
             return response()->json([
@@ -191,10 +168,10 @@ class EventController extends Controller
 
         // Registrar al usuario en el evento
         $event->attendees()->attach($userId);
-        
+
         $user = $this->userRepository->findById($userId);
 
-        if($user['registration_type'] !== 'virtual'){
+        if ($user['registration_type'] !== 'virtual') {
             $event->increment('current_attendees');
         }
 

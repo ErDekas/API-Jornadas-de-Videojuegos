@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Registration;
 use App\Repositories\Registration\RegistrationRepositoryInterface;
 use Illuminate\Http\Request;
+use App\Http\Requests\RegistrationRequest;
 use Illuminate\Support\Facades\Auth;
 
 class RegistrationController extends Controller
@@ -25,14 +26,14 @@ class RegistrationController extends Controller
         $registrations = $this->registrationRepository->getAll();
         return response()->json([
             'data_count' => $registrations->count(),
-            'registrations' => $registrations     
+            'registrations' => $registrations
         ], 200);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(RegistrationRequest $request)
     {
         if (!Auth::user()->is_admin) {
             return response()->json([
@@ -40,20 +41,11 @@ class RegistrationController extends Controller
             ], 403);
         }
 
-        $validateData = $request->validate([
-            'user_id' => 'required|exists:users,id',  
-            'registration_type' => 'required|string|max:255',
-            'total_amount' => 'required|numeric|min:0.01', 
-            'payment_status' => 'required|string|in:pending,completed,failed', 
-            'ticket_code' => 'required|string|max:255|unique:registrations,ticket_code', 
-        ]);
-
-        $registration = $this->registrationRepository->create($validateData);
+        $registration = $this->registrationRepository->create($request->validated());
 
         return response()->json([
             "message" => "La inscripción ha sido agregada correctamente"
         ], 201);
-        
     }
 
     /**
@@ -63,12 +55,11 @@ class RegistrationController extends Controller
     {
         $registrations = $this->registrationRepository->findById($id);
 
-        if(!empty($registrations)){
+        if (!empty($registrations)) {
             return response()->json([
                 'registrations' => $registrations
             ], 200);
-        }
-        else{
+        } else {
             return response()->json([
                 "message" => "La inscripción no se ha encontrado"
             ]);
@@ -78,7 +69,7 @@ class RegistrationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(RegistrationRequest $request, $id)
     {
         if (!Auth::user()->is_admin) {
             return response()->json([
@@ -86,25 +77,17 @@ class RegistrationController extends Controller
             ], 403);
         }
 
-        $validateData = $request->validate([
-            'user_id' => 'required|exists:users,id',  
-            'registration_type' => 'required|string|max:255',
-            'total_amount' => 'required|numeric|min:0.01', 
-            'payment_status' => 'required|string|in:pending,completed,failed', 
-            'ticket_code' => 'required|string|max:255|unique:registrations,ticket_code', 
-        ]);
-
-        $registrations = $this->registrationRepository->update($id, $request->all());
+        $registrations = $this->registrationRepository->update($id, $request->validated());
 
         if (!$registrations) {
             return response()->json([
                 'registrations' => 'La inscripcion no se ha encontrado'
-            ], 404); 
+            ], 404);
         }
 
         return response()->json([
             "message" => "La inscripción ha sido actualizada correctamente",
-            'data_count' => 1 
+            'data_count' => 1
         ], 200);
     }
 
@@ -124,7 +107,7 @@ class RegistrationController extends Controller
         if (!$registrations) {
             return response()->json([
                 'message' => 'La inscripcion no se ha encontrado'
-            ], 404); 
+            ], 404);
         }
 
         return response()->json([
@@ -135,15 +118,16 @@ class RegistrationController extends Controller
     /**
      * Method to get all the registrations with a specific ticket
      */
-    public function getTicket($id){
+    public function getTicket($id)
+    {
         $ticketCode = $this->registrationRepository->findByTicketCode($id);
-  
+
         if (!$ticketCode) {
             return response()->json([
                 'message' => 'No hay inscripciones con este ticket'
             ], 404);
         }
-    
+
         return response()->json([
             'ticket_code' => $ticketCode->ticket_code,
             'user_id' => $ticketCode->user_id,

@@ -6,6 +6,7 @@ use App\Models\Speaker;
 use Illuminate\Support\Facades\Auth;
 use App\Repositories\Speaker\SpeakerRepositoryInterface;
 use Illuminate\Http\Request;
+use App\Http\Requests\SpeakerRequest;
 use Illuminate\Support\Facades\Storage;
 
 class SpeakerController extends Controller
@@ -33,7 +34,7 @@ class SpeakerController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(SpeakerRequest $request)
     {
         if (!Auth::user()->is_admin) {
             return response()->json([
@@ -41,21 +42,13 @@ class SpeakerController extends Controller
             ], 403);
         }
 
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'photo_url' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'social_links' => 'nullable',
-            'social_links.*' => 'nullable|url',
-            'expertise_areas' => 'nullable|array',
-        ]);
-
         $data = $request->all();
 
         // Manejar la subida del archivo
         if ($request->hasFile('photo_url')) {
             $file = $request->file('photo_url');
-            $path = $file->store('images', 'public'); // Guarda en storage/app/public/speakers
-            $data['photo_url'] = url('storage/' . $path); // Guarda la URL completa
+            $path = $file->store('images', 'public');
+            $data['photo_url'] = url('storage/' . $path);
         }
 
         $this->speakerRepository->create($data);
@@ -65,7 +58,6 @@ class SpeakerController extends Controller
             'data_count' => 1
         ], 201);
     }
-
     /**
      * Display the specified resource.
      */
@@ -90,7 +82,7 @@ class SpeakerController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(SpeakerRequest $request, $id)
     {
         if (!Auth::user()->is_admin) {
             return response()->json([
@@ -98,23 +90,13 @@ class SpeakerController extends Controller
             ], 403);
         }
 
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'photo_url' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'social_links' => 'nullable',
-            'social_links.*' => 'nullable|url',
-            'expertise_areas' => 'nullable|array',
-        ]);
-
         $data = $request->except('photo_url');
 
-        // Manejar la subida del archivo
         if ($request->hasFile('photo_url')) {
             $file = $request->file('photo_url');
             $path = $file->store('speakers', 'public');
             $data['photo_url'] = url('storage/' . $path);
 
-            // Opcional: Eliminar la imagen anterior
             $speaker = $this->speakerRepository->findById($id);
             if ($speaker && $speaker->photo_url) {
                 $oldPath = str_replace(url('storage/'), '', $speaker->photo_url);

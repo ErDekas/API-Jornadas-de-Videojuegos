@@ -6,6 +6,7 @@ use App\Repositories\Payment\PaymentRepositoryInterface;
 use App\Models\Payment;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use App\Http\Requests\PaymentRequest;
 
 class PaymentController extends Controller
 {
@@ -32,7 +33,7 @@ class PaymentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(PaymentRequest $request)
     {
         if (!Auth::user()->is_admin) {
             return response()->json([
@@ -40,16 +41,7 @@ class PaymentController extends Controller
             ], 403);
         }
 
-        $request->validate([
-            'registration_id' => 'required|exists:registrations,id',
-            'amount' => 'required|numeric|min:0.01',
-            'payment_method' => 'required|string|in:card,paypal',
-            'transaction_id' => 'required|string|unique:payments,transaction_id',
-            'status' => 'required|string|in:pending,completed,failed',
-            'paypal_order_id' => 'nullable|string',
-        ]);
-
-        $payment = $this->paymentRepository->create($request->all());
+        $payment = $this->paymentRepository->create($request->validated());
 
         return response()->json([
             "message" => "El pago ha sido agregado correctamente",
@@ -64,22 +56,21 @@ class PaymentController extends Controller
     {
         $payments = $this->paymentRepository->findById($id);
 
-        if(!empty($payments)){
+        if (!empty($payments)) {
             return response()->json([
                 'payment' => $payments
             ], 200);
-        }
-        else{
+        } else {
             return response()->json([
                 "message" => "El pago no se ha encontrado"
-            ],404);
+            ], 404);
         }
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(PaymentRequest $request, $id)
     {
         if (!Auth::user()->is_admin) {
             return response()->json([
@@ -87,12 +78,12 @@ class PaymentController extends Controller
             ], 403);
         }
 
-        $payments = $this->paymentRepository->update($id, $request->all());
+        $payments = $this->paymentRepository->update($id, $request->validated());
 
         if (!$payments) {
             return response()->json([
                 'message' => 'El pago no se ha encontrado'
-            ], 404); 
+            ], 404);
         }
 
         return response()->json([
@@ -116,7 +107,7 @@ class PaymentController extends Controller
         if (!$payments) {
             return response()->json([
                 'message' => 'El pago no se ha encontrado'
-            ], 404); 
+            ], 404);
         }
 
         return response()->json([
@@ -127,38 +118,31 @@ class PaymentController extends Controller
     /**
      * Method for process the payment
      */
-    public function process(Request $request)
+    public function process(PaymentRequest $request)
     {
-        $validate = $request->validate([
-            'registration_id' => 'required|exists:registrations,id',
-            'amount' => 'required|numeric|min:0.01',
-            'payment_method' => 'required|string|in:card,paypal',
-            'transaction_id' => 'required|string|unique:payments,transaction_id',
-            'status' => 'required|string|in:pending,completed,failed',
-            'paypal_order_id' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         $payment = $this->paymentRepository->process([
-            'registration_id' => $validate['registration_id'],
-            'amount' => $validate['amount'],
-            'payment_method' => $validate['payment_method'],
-            'transaction_id' => $validate['transaction_id'],
-            'status' => $validate['status'],
-            'paypal_order_id' => $validate['paypal_order_id'] ?? null,
+            'registration_id' => $validated['registration_id'],
+            'amount' => $validated['amount'],
+            'payment_method' => $validated['payment_method'],
+            'transaction_id' => $validated['transaction_id'],
+            'status' => $validated['status'],
+            'paypal_order_id' => $validated['paypal_order_id'] ?? null,
         ]);
 
         return response()->json([
             "message" => "El pago ha sido procesado correctamente",
             "payment" => $payment,
-            'data_count' => 1 
+            'data_count' => 1
         ], 201);
-
     }
 
     /**
      * Method for verify a payment
      */
-    public function verify(Request $request){
+    public function verify(Request $request)
+    {
 
         $request->validate([
             'transaction_id' => 'nullable|string|exists:payments,transaction_id',
@@ -177,6 +161,5 @@ class PaymentController extends Controller
             'message' => 'Pago encontrado',
             'payment' => $payment
         ], 200);
-
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Http\Requests\AuthRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -14,28 +15,19 @@ class AuthController extends Controller
     /**
      * Resgiter a new user
      */
-    public function register(Request $request)
+    public function register(AuthRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-            'registration_type' => 'required|string|in:virtual,presential,student',
-            'is_admin' => 'boolean',
-        ]);
-
         $user = new User();
         $user->name = $request->name;
         $user->email = $request->email;
         $user->password = bcrypt($request->password);
         $user->registration_type = $request->registration_type;
-        $user->is_admin = $request->is_admin ?? false; // Por defecto, no admin
-        $user->email_verified_at = null; // No verificado al inicio
+        $user->is_admin = $request->is_admin ?? false;
+        $user->email_verified_at = null;
         $user->student_verified = $request->registration_type === 'Estudiante';
 
         $user->save();
 
-        // Crear token de autenticación con Sanctum
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -50,13 +42,8 @@ class AuthController extends Controller
     /**
      * Log in with a email and password
      */
-    public function login(Request $request)
+    public function login(AuthRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
         $user = User::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
@@ -118,12 +105,8 @@ class AuthController extends Controller
     /**
      * Iniciar el proceso de restablecimiento de contraseña
      */
-    public function forgotPassword(Request $request)
+    public function forgotPassword(AuthRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email'
-        ]);
-
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
@@ -132,10 +115,8 @@ class AuthController extends Controller
             ], 404);
         }
 
-        // Generar token único
         $token = Str::random(64);
 
-        // Guardar el token en la base de datos
         DB::table('password_reset_tokens')->updateOrInsert(
             ['email' => $request->email],
             [
@@ -197,14 +178,8 @@ class AuthController extends Controller
     /**
      * Restablecer la contraseña
      */
-    public function resetPassword(Request $request)
+    public function resetPassword(AuthRequest $request)
     {
-        $request->validate([
-            'token' => 'required',
-            'email' => 'required|email',
-            'password' => 'required|min:6|confirmed'
-        ]);
-
         $resetRecord = DB::table('password_reset_tokens')
             ->where('email', $request->email)
             ->where('token', $request->token)
@@ -226,14 +201,11 @@ class AuthController extends Controller
             ], 404);
         }
 
-        // Actualizar contraseña
         $user->password = Hash::make($request->password);
         $user->save();
 
-        // Eliminar el token usado
         DB::table('password_reset_tokens')->where('email', $request->email)->delete();
 
-        
         return response()->json([
             'message' => 'Contraseña actualizada correctamente',
             'success' => true
