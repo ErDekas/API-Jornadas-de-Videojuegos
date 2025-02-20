@@ -28,6 +28,8 @@ class EventRequest extends FormRequest
                     'current_attendees' => 'required|integer',
                     'location' => 'required|string|max:255',
                 ];
+
+                return [];
         }
     }
 }

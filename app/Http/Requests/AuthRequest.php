@@ -16,7 +16,7 @@ class AuthRequest extends FormRequest
         switch ($this->method()) {
             case 'POST':
                 // Para el registro
-                if ($this->is('api/register')) {
+                if ($this->is('/register')) {
                     return [
                         'name' => 'required|string|max:255',
                         'email' => 'required|string|email|unique:users',
@@ -26,26 +26,28 @@ class AuthRequest extends FormRequest
                     ];
                 }
                 // Para el login
-                if ($this->is('api/login')) {
+                if ($this->is('/login')) {
                     return [
                         'email' => 'required|email',
                         'password' => 'required',
                     ];
                 }
                 // Para forgot password
-                if ($this->is('api/forgot-password')) {
+                if ($this->is('/password/forgot')) {
                     return [
                         'email' => 'required|email'
                     ];
                 }
                 // Para reset password
-                if ($this->is('api/reset-password')) {
+                if ($this->is('/password/reset')) {
                     return [
                         'token' => 'required',
                         'email' => 'required|email',
                         'password' => 'required|min:6|confirmed'
                     ];
                 }
+
+                return [];
         }
     }
 }
